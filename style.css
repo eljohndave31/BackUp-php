@@ -45,7 +45,7 @@ form {
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
-    background: #4f46e5;
+    background: #007bff;
     border-radius: 5px;
     color: white;
     padding: 8px;
@@ -80,7 +80,7 @@ input:focus, select:focus {
 }
 
 input[type="submit"] {
-    background-color: #162e98;
+    background: #0d61bc;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -93,7 +93,7 @@ input[type="submit"] {
 }
 
 input[type="submit"]:hover {    
-    background-color: #505ca8;
+    background-color: #0c29e3;
     /* transform: scale(1.05); */
 }
 

@@ -13,7 +13,7 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 if (!$user) {
-    echo "<h3 style='color:red; text-align:center;'>Record not found!</h3>";
+    echo "<h3 style='color:red; text-align:center; font-family: Arial, sans-serif;'>Record not found!</h3>";
     exit();
 }
 
@@ -81,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 
 <div class="edit-container">
-    <h2>Edit Personal Info</h2>
+    <h2>Edit Here</h2>
     <form method="POST">
         <label>Last Name:</label>
         <input type="text" name="last_name" value="<?= htmlspecialchars($user['last_name']) ?>" required>

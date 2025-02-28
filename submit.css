@@ -1,4 +1,4 @@
-/* General Styles */
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -7,73 +7,63 @@ body {
     text-align: center;
 }
 
-/* Header Styles */
+
 h2 {
     color: #333;
     margin-bottom: 20px;
 }
 
-/* Table Container */
+
 .table-container {
     display: flex;
     justify-content: center;
     overflow-x: auto;
 }
 
-/* Table Styles */
+
 table {
+    margin-top: -10px;
     width: 95%;
     max-width: 1200px;
     border-collapse: collapse;
-    background: #fff;
+    background: #f9f9f9;;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 0 auto; 
 }
 
-/* Table Header */
+
 table th {
     background: #007bff;
     color: #fff;
-    padding: 12px;
+    padding: 14px;
     text-align: center;
     text-transform: uppercase;
 }
 
 table td {
-    padding: 5px 5px; /* Bawasan ang padding */
-    white-space: nowrap; /* Para hindi mag-wrap ang text */
-    text-align: center; /* Mas maayos na text alignment */
-    height: 25px; /* Adjust as needed */
+    padding: 6px 6px; 
+    white-space: nowrap; 
+    text-align: center;
+    height: 25px; 
 }
 
 
-
-td:nth-child(7), /* Place of Birth */
-td:nth-child(8)  /* Home Address */ {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-/* Alternate Row Colors */
 table tr:nth-child(even) {
     background: #f9f9f9;
 }
 
-/* Hover Effect */
+
 table tr:hover {
     background: #e9ecef;
     transition: 0.3s;
 }
-
-/* Action Buttons */
 .action-buttons {
     display: flex;
     justify-content: center;
     gap: 8px;
+    border: none;
 }
 
 .action-buttons a {
@@ -87,8 +77,8 @@ table tr:hover {
 }
 
 .action-buttons .edit {
-    background: #ffc107;
-    color: #333;
+    background: #306ee9;
+    color: #fff;
 }
 
 .action-buttons .delete {
@@ -97,14 +87,14 @@ table tr:hover {
 }
 
 .action-buttons .edit:hover {
-    background: #e0a800;
+    background: #081eab;
 }
 
 .action-buttons .delete:hover {
     background: #c82333;
 }
 
-/* Success/Error Message */
+
 .message {
     display: block;
     width: 80%;
@@ -127,7 +117,7 @@ table tr:hover {
     border-left: 6px solid #dc3545;
 }
 
-/* Add More Button */
+
 .btn {
     display: inline-block;
     padding: 12px 20px;

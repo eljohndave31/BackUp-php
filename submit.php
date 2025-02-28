@@ -6,7 +6,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         return htmlspecialchars(stripslashes(trim($data)));
     }
 
-    $errors = [];
+    function validate_required_fields($fields, $data) {
+        $errors = [];
+        foreach ($fields as $field) {
+            if (empty($data[$field])) {
+                $errors[] = ucfirst(str_replace("_", " ", $field)) . " is required.";
+            }
+        }
+        return $errors;
+    }
+
+    function validate_specific_fields($data) {
+        $errors = [];
+        if (!empty($data['last_name']) && !preg_match("/^[A-Za-z\s]+$/", $data['last_name'])) {
+            $errors[] = "Last name should only contain letters and spaces.";
+        }
+        if (!empty($data['first_name']) && !preg_match("/^[A-Za-z\s]+$/", $data['first_name'])) {
+            $errors[] = "First name should only contain letters and spaces.";
+        }
+        if (!empty($data['middle_name']) && !preg_match("/^[A-Za-z\s]+$/", $data['middle_name'])) {
+            $errors[] = "Middle name should only contain letters and spaces.";
+        }
+        if (!empty($data['mobile']) && !preg_match("/^\d{10,}$/", $data['mobile'])) {
+            $errors[] = "Mobile Number should contain at least 10 digits.";
+        }
+        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Invalid email format.";
+        }
+        return $errors;
+    }
+
+    function validate_age($dob) {
+        $errors = [];
+        if (!empty($dob)) {
+            $dob_date = new DateTime($dob);
+            $today = new DateTime();
+            $age = $today->diff($dob_date)->y;
+
+            if ($age < 18) {
+                $errors[] = "You must be at least 18 years old.";
+            }
+        }
+        return $errors;
+    }
 
     $required_fields = [
         'last_name', 'first_name', 'middle_name', 'dob', 'sex', 'civil_status', 'nationality',
@@ -14,39 +56,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'home_street', 'home_city', 'home_province', 'home_country', 'home_zip_code', 'mobile'
     ];
 
-    foreach ($required_fields as $field) {
-        if (empty($_POST[$field])) {
-            $errors[] = ucfirst(str_replace("_", " ", $field)) . " is required.";
-        }
-    }
-
-    // Specific field validations
-    if (!empty($_POST['last_name']) && !preg_match("/^[A-Za-z\s]+$/", $_POST['last_name'])) {
-        $errors[] = "Last name should only contain letters and spaces.";
-    }
-    if (!empty($_POST['first_name']) && !preg_match("/^[A-Za-z\s]+$/", $_POST['first_name'])) {
-        $errors[] = "First name should only contain letters and spaces.";
-    }
-    if (!empty($_POST['middle_name']) && !preg_match("/^[A-Za-z\s]+$/", $_POST['middle_name'])) {
-        $errors[] = "Middle name should only contain letters and spaces.";
-    }
-    if (!empty($_POST['mobile']) && !preg_match("/^\d{10,}$/", $_POST['mobile'])) {
-        $errors[] = "Mobile Number should contain at least 10 digits.";
-    }
-    if (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format.";
-    }
-
-    // Age validation
-    if (!empty($_POST['dob'])) {
-        $dob_date = new DateTime($_POST['dob']);
-        $today = new DateTime();
-        $age = $today->diff($dob_date)->y;
-
-        if ($age < 18) {
-            $errors[] = "You must be at least 18 years old.";
-        }
-    }
+    $errors = array_merge(
+        validate_required_fields($required_fields, $_POST),
+        validate_specific_fields($_POST),
+        validate_age($_POST['dob'])
+    );
 
     if (!empty($errors)) {
         // If there are validation errors, display them
@@ -93,31 +107,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sql = "INSERT INTO personal_info 
     (last_name, first_name, middle_name, dob, sex, civil_status, 
     nationality, religion, birth_street, birth_city, birth_province, birth_country, birth_zip_code, 
-    home_street, home_city, home_province, home_country, home_zip_code,  -- ✅ DITO NADAGDAG
+    home_street, home_city, home_province, home_country, home_zip_code, 
     mobile, email, telephone, father_last_name, father_first_name, father_middle_name, 
     mother_last_name, mother_first_name, mother_middle_name, tin) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-$stmt = $conn->prepare($sql);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param(
+        "ssssssssssssssssssssssssssss", 
+        $last_name, $first_name, $middle_name, $dob, $sex, $civil_status, 
+        $nationality, $religion, $birth_street, $birth_city, $birth_province, $birth_country, $birth_zip_code, 
+        $home_street, $home_city, $home_province, $home_country, $home_zip_code, 
+        $mobile, $email, $telephone, $father_last_name, $father_first_name, $father_middle_name, 
+        $mother_last_name, $mother_first_name, $mother_middle_name, $tin
+    );
 
-// ✅ Siguraduhin na 28 values ang nakasama sa bind_param()
-$stmt->bind_param(
-    "ssssssssssssssssssssssssssss", 
-    $last_name, $first_name, $middle_name, $dob, $sex, $civil_status, 
-    $nationality, $religion, $birth_street, $birth_city, $birth_province, $birth_country, $birth_zip_code, 
-    $home_street, $home_city, $home_province, $home_country, $home_zip_code,  // ✅ DITO NADAGDAG
-    $mobile, $email, $telephone, $father_last_name, $father_first_name, $father_middle_name, 
-    $mother_last_name, $mother_first_name, $mother_middle_name, $tin
-);
-
-
-if ($stmt->execute()) {
-    header("Location: submit.php?success=1");
-    exit();
-} else {
-    echo "Error: " . $stmt->error;
-}
-
+    if ($stmt->execute()) {
+        header("Location: submit.php?success=submitted");
+        exit();
+    } else {
+        echo "Error: " . $stmt->error;
+    }
 }
 
 // Fetch all records AFTER redirection (safe from form resubmission)
@@ -144,59 +154,56 @@ function calculate_age($dob) {
 <body>
 
 <?php if (isset($_GET['success'])): ?>
-    <h2 style="color: green;">Submitted Successfully!</h2>
-    <?php elseif (isset($_GET['success']) && $_GET['success'] == 'updated'): ?>
-        <h2 style="color: green;"> Updated Successfully!</h2>
+    <?php if ($_GET['success'] == 'submitted'): ?>
+        <h2 style="color: green;">Submitted Successfully!</h2>
+    <?php elseif ($_GET['success'] == 'updated'): ?>
+        <h2 style="color: green;">Updated Successfully!</h2>
+    <?php elseif ($_GET['success'] == 'deleted'): ?>
+        <h2 style="color: green;">Deleted Successfully!</h2>
+    <?php endif; ?>
 <?php endif; ?>
 
-<!-- <h2>All Records</h2> -->
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Full Name</th>
-        <!-- <th>Date of Birth</th> -->
-        <th>Age</th>
-        <th>Sex</th>
-        <th>Civil Status</th>
-        <th>Nationality</th>
-        <!-- <th>Religion</th> -->
-        <th>Place of Birth</th>
-        <th>Home Address</th>
-        <th>Mobile</th>
-        <th>Email</th>
-        <!-- <th>Telephone</th> -->
-        <th>Father's Name</th>
-        <th>Mother's Name</th>
-        <th>Actions</th>
-    </tr>
 
-    <?php while ($user = $result->fetch_assoc()): ?>
-    <tr>
-        <td><?= htmlspecialchars($user['id']) ?></td>
-        <td><?= htmlspecialchars($user['last_name'] . " " . $user['first_name'] . " " . $user['middle_name']) ?></td>
-        <!-- <td><?= htmlspecialchars($user['dob']) ?></td> -->
-        <td><?= calculate_age($user['dob']) ?></td>
-        <td><?= htmlspecialchars($user['sex']) ?></td>
-        <td><?= htmlspecialchars($user['civil_status']) ?></td>
-        <td><?= htmlspecialchars($user['nationality']) ?></td>
-        <!-- <td><?= htmlspecialchars($user['religion']) ?></td> -->
-        <td><?= htmlspecialchars($user['birth_street'] . ", " . $user['birth_city'] . ", " . $user['birth_province'] . ", " . $user['birth_country'] . ", " . $user['birth_zip_code']) ?></td>
-        <td><?= htmlspecialchars($user['home_street'] . ", " . $user['home_city'] . ", " . $user['home_province'] . ", " . $user['home_country'] . ", " . $user['home_zip_code']) ?></td>
-        <td><?= htmlspecialchars($user['mobile']) ?></td>
-        <td><?= htmlspecialchars($user['email']) ?></td>
-        <!-- <td><?= htmlspecialchars($user['telephone']) ?></td> -->
-        <td><?= htmlspecialchars($user['father_first_name'] . " " . $user['father_middle_name'] . " " . $user['father_last_name']) ?></td>
-        <td><?= htmlspecialchars($user['mother_first_name'] . " " . $user['mother_middle_name'] . " " . $user['mother_last_name']) ?></td>
-        <td class="action-buttons">
-            <a href="edit.php?id=<?= $user['id'] ?>" class="edit"><i class="fas fa-edit"></i> Edit</a> | 
-            <a href="delete.php?id=<?= $user['id'] ?>" class="delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</a>
-        </td>
-    </tr>
-    <?php endwhile; ?>
-</table>
+<!-- <h2>All Records</h2> -->
+<div class="table-container">
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Age</th>
+            <th>Sex</th>
+            <th>Civil Status</th>
+            <th>Nationality</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+
+        <?php while ($user = $result->fetch_assoc()): ?>
+        <tr>
+            <td><?= htmlspecialchars($user['id']) ?></td>
+            <td><?= htmlspecialchars($user['last_name'] . "," .  $user['first_name'] . " " . $user['middle_name']) ?></td>
+            <!-- <td><?= htmlspecialchars($user['dob']) ?></td> -->
+            <td><?= calculate_age($user['dob']) ?></td>
+            <td><?= htmlspecialchars($user['sex']) ?></td>
+            <td><?= htmlspecialchars($user['civil_status']) ?></td>
+            <td><?= htmlspecialchars($user['nationality']) ?></td>
+            <!-- <td><?= htmlspecialchars($user['religion']) ?></td> -->
+            <td><?= htmlspecialchars($user['mobile']) ?></td>
+            <td><?= htmlspecialchars($user['email']) ?></td>
+            <!-- <td><?= htmlspecialchars($user['telephone']) ?></td> -->
+            <td class="action-buttons">
+                <a href="view.php?id=<?= $user['id'] ?>" class="view"><i class="fas fa-eye"></i> View</a> | 
+                <a href="edit.php?id=<?= $user['id'] ?>" class="edit"><i class="fas fa-edit"></i> Edit</a> | 
+                <a href="delete.php?id=<?= $user['id'] ?>" class="delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</a>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+    </table>
+</div>
 
 <br><br>
-<a href="index.php" class="btn btn-primary">Add More</a>
+<a href="index.php" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Add More</a>
 
 </body>
 </html>
