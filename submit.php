@@ -1,5 +1,5 @@
 <?php
-include 'db.php'; // Database connection
+include 'db.php'; // Database connection (PDO)
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     function clean_input($data) {
@@ -63,7 +63,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     );
 
     if (!empty($errors)) {
-        // If there are validation errors, display them
         echo "<h2 style='color: red;'>Please fix the following errors:</h2>";
         echo "<ul style='color: red;'>";
         foreach ($errors as $error) {
@@ -74,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Prepare the data for insertion
+    // Prepare the data
     $last_name = clean_input($_POST['last_name']);
     $first_name = clean_input($_POST['first_name']);
     $middle_name = clean_input($_POST['middle_name']);
@@ -104,59 +103,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mother_first_name = clean_input($_POST['mother_first_name']);
     $mother_middle_name = clean_input($_POST['mother_middle_name']);
 
+    // Insert into DB using PDO
     $sql = "INSERT INTO personal_info 
     (last_name, first_name, middle_name, dob, sex, civil_status, 
     nationality, religion, birth_street, birth_city, birth_province, birth_country, birth_zip_code, 
     home_street, home_city, home_province, home_country, home_zip_code, 
     mobile, email, telephone, father_last_name, father_first_name, father_middle_name, 
     mother_last_name, mother_first_name, mother_middle_name, tin) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    VALUES (
+        :last_name, :first_name, :middle_name, :dob, :sex, :civil_status,
+        :nationality, :religion, :birth_street, :birth_city, :birth_province, :birth_country, :birth_zip_code,
+        :home_street, :home_city, :home_province, :home_country, :home_zip_code,
+        :mobile, :email, :telephone, :father_last_name, :father_first_name, :father_middle_name,
+        :mother_last_name, :mother_first_name, :mother_middle_name, :tin
+    )";
 
-$stmt = $conn->prepare($sql);
-$stmt->execute([
-    ':last_name' => $last_name,
-    ':first_name' => $first_name,
-    ':middle_name' => $middle_name,
-    ':dob' => $dob,
-    ':sex' => $sex,
-    ':civil_status' => $civil_status,
-    ':nationality' => $nationality,
-    ':religion' => $religion,
-    ':birth_street' => $birth_street,
-    ':birth_city' => $birth_city,
-    ':birth_province' => $birth_province,
-    ':birth_country' => $birth_country,
-    ':birth_zip_code' => $birth_zip_code,
-    ':home_street' => $home_street,
-    ':home_city' => $home_city,
-    ':home_province' => $home_province,
-    ':home_country' => $home_country,
-    ':home_zip_code' => $home_zip_code,
-    ':mobile' => $mobile,
-    ':email' => $email,
-    ':telephone' => $telephone,
-    ':father_last_name' => $father_last_name,
-    ':father_first_name' => $father_first_name,
-    ':father_middle_name' => $father_middle_name,
-    ':mother_last_name' => $mother_last_name,
-    ':mother_first_name' => $mother_first_name,
-    ':mother_middle_name' => $mother_middle_name,
-    ':tin' => $tin
-]);
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
+        ':last_name' => $last_name,
+        ':first_name' => $first_name,
+        ':middle_name' => $middle_name,
+        ':dob' => $dob,
+        ':sex' => $sex,
+        ':civil_status' => $civil_status,
+        ':nationality' => $nationality,
+        ':religion' => $religion,
+        ':birth_street' => $birth_street,
+        ':birth_city' => $birth_city,
+        ':birth_province' => $birth_province,
+        ':birth_country' => $birth_country,
+        ':birth_zip_code' => $birth_zip_code,
+        ':home_street' => $home_street,
+        ':home_city' => $home_city,
+        ':home_province' => $home_province,
+        ':home_country' => $home_country,
+        ':home_zip_code' => $home_zip_code,
+        ':mobile' => $mobile,
+        ':email' => $email,
+        ':telephone' => $telephone,
+        ':father_last_name' => $father_last_name,
+        ':father_first_name' => $father_first_name,
+        ':father_middle_name' => $father_middle_name,
+        ':mother_last_name' => $mother_last_name,
+        ':mother_first_name' => $mother_first_name,
+        ':mother_middle_name' => $mother_middle_name,
+        ':tin' => $tin
+    ]);
 
-
-    if ($stmt->execute()) {
-        header("Location: submit.php?success=submitted");
-        exit();
-    } else {
-        echo "Error: " . $stmt->error;
-    }
+    header("Location: submit.php?success=submitted");
+    exit();
 }
 
-// Fetch all records AFTER redirection (safe from form resubmission)
-include 'db.php'; // Reconnect to database after redirect
+// Fetch all records
 $sql = "SELECT * FROM personal_info ORDER BY id DESC";
-$result = $conn->query($sql);
+$stmt = $conn->query($sql);
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 function calculate_age($dob) {
     $dob_date = new DateTime($dob);
@@ -186,8 +187,6 @@ function calculate_age($dob) {
     <?php endif; ?>
 <?php endif; ?>
 
-
-<!-- <h2>All Records</h2> -->
 <div class="table-container">
     <table border="1">
         <tr>
@@ -202,26 +201,23 @@ function calculate_age($dob) {
             <th>Actions</th>
         </tr>
 
-        <?php while ($user = $result->fetch_assoc()): ?>
+        <?php foreach ($users as $user): ?>
         <tr>
             <td><?= htmlspecialchars($user['id']) ?></td>
-            <td><?= htmlspecialchars($user['last_name'] . "," .  $user['first_name'] . " " . $user['middle_name']) ?></td>
-            <!-- <td><?= htmlspecialchars($user['dob']) ?></td> -->
+            <td><?= htmlspecialchars($user['last_name'] . ", " . $user['first_name'] . " " . $user['middle_name']) ?></td>
             <td><?= calculate_age($user['dob']) ?></td>
             <td><?= htmlspecialchars($user['sex']) ?></td>
             <td><?= htmlspecialchars($user['civil_status']) ?></td>
             <td><?= htmlspecialchars($user['nationality']) ?></td>
-            <!-- <td><?= htmlspecialchars($user['religion']) ?></td> -->
             <td><?= htmlspecialchars($user['mobile']) ?></td>
             <td><?= htmlspecialchars($user['email']) ?></td>
-            <!-- <td><?= htmlspecialchars($user['telephone']) ?></td> -->
             <td class="action-buttons">
                 <a href="view.php?id=<?= $user['id'] ?>" class="view"><i class="fas fa-eye"></i> View</a> | 
                 <a href="edit.php?id=<?= $user['id'] ?>" class="edit"><i class="fas fa-edit"></i> Edit</a> | 
                 <a href="delete.php?id=<?= $user['id'] ?>" class="delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</a>
             </td>
         </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     </table>
 </div>
 
@@ -232,5 +228,5 @@ function calculate_age($dob) {
 </html>
 
 <?php 
-$conn->close();
+$conn = null; // Close PDO connection
 ?>
