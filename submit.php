@@ -112,15 +112,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     mother_last_name, mother_first_name, mother_middle_name, tin) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        "ssssssssssssssssssssssssssss", 
-        $last_name, $first_name, $middle_name, $dob, $sex, $civil_status, 
-        $nationality, $religion, $birth_street, $birth_city, $birth_province, $birth_country, $birth_zip_code, 
-        $home_street, $home_city, $home_province, $home_country, $home_zip_code, 
-        $mobile, $email, $telephone, $father_last_name, $father_first_name, $father_middle_name, 
-        $mother_last_name, $mother_first_name, $mother_middle_name, $tin
-    );
+$stmt = $conn->prepare($sql);
+$stmt->execute([
+    ':last_name' => $last_name,
+    ':first_name' => $first_name,
+    ':middle_name' => $middle_name,
+    ':dob' => $dob,
+    ':sex' => $sex,
+    ':civil_status' => $civil_status,
+    ':nationality' => $nationality,
+    ':religion' => $religion,
+    ':birth_street' => $birth_street,
+    ':birth_city' => $birth_city,
+    ':birth_province' => $birth_province,
+    ':birth_country' => $birth_country,
+    ':birth_zip_code' => $birth_zip_code,
+    ':home_street' => $home_street,
+    ':home_city' => $home_city,
+    ':home_province' => $home_province,
+    ':home_country' => $home_country,
+    ':home_zip_code' => $home_zip_code,
+    ':mobile' => $mobile,
+    ':email' => $email,
+    ':telephone' => $telephone,
+    ':father_last_name' => $father_last_name,
+    ':father_first_name' => $father_first_name,
+    ':father_middle_name' => $father_middle_name,
+    ':mother_last_name' => $mother_last_name,
+    ':mother_first_name' => $mother_first_name,
+    ':mother_middle_name' => $mother_middle_name,
+    ':tin' => $tin
+]);
+
 
     if ($stmt->execute()) {
         header("Location: submit.php?success=submitted");
