@@ -1,18 +1,14 @@
 <?php
-// Database Configuration
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "personal_data";
 
-// Create connection using MySQLi
-$conn = new mysqli($servername, $username, $password, $dbname);
+$servername = getenv('DB_HOST');
+$username   = getenv('DB_USERNAME');  // ✅ Matches Coolify
+$password   = getenv('DB_PASSWORD');  // ✅ Matches Coolify
+$dbname     = getenv('DB_DATABASE');
 
-// Check connection and display user-friendly message if it fails
-if ($conn->connect_error) {
-    die("<h3 style='color:red; text-align:center;'>Database Connection Failed: " . $conn->connect_error . "</h3>");
+try {
+    $conn = new PDO("mysql:host=$servername;port=3306;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
 }
-
-// Set character encoding to avoid issues with special characters
-$conn->set_charset("utf8");
 ?>
